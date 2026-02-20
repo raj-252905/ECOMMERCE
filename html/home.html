@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home – E-Commerce</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<nav class="nav" id="mainNav"></nav>
+
+<main class="container page">
+  <h1 class="page-title">Products</h1>
+
+  <div class="search-bar">
+    <input type="search" id="searchInput" placeholder="Search products..." />
+  </div>
+
+  <div class="products-grid" id="productsGrid"></div>
+  <p class="text-muted hide" id="noResults">No products match your search.</p>
+</main>
+
+<!-- SCRIPT ORDER IS CRITICAL -->
+<script src="../js/auth.js"></script>
+<script src="../js/products.js"></script>
+<script src="../js/cart.js"></script>
+<script src="../js/app.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  if (!requireAuth()) return;
+  renderNav('home');
+
+  const grid = document.getElementById('productsGrid');
+  const searchInput = document.getElementById('searchInput');
+  const noResults = document.getElementById('noResults');
+
+  function renderProducts(products) {
+    if (!products.length) {
+      grid.classList.add('hide');
+      noResults.classList.remove('hide');
+      return;
+    }
+
+    grid.classList.remove('hide');
+    noResults.classList.add('hide');
+
+    grid.innerHTML = products.map(p => `
+      <article class="product-card">
+        <img src="${p.image}" alt="${p.name}" />
+        <div class="product-card-body">
+          <span class="category">${p.category}</span>
+          <h3>${p.name}</h3>
+          <span class="price">$${p.price.toFixed(2)}</span>
+          <button class="btn btn-primary btn-add-cart" data-id="${p.id}">
+            Add to Cart
+          </button>
+        </div>
+      </article>
+    `).join('');
+
+    document.querySelectorAll('.btn-add-cart').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const id = parseInt(this.dataset.id, 10);
+        addToCart(id);
+        renderNav('home');
+      });
+    });
+  }
+
+  function filterProducts() {
+    const q = searchInput.value.trim().toLowerCase();
+    const all = getProducts();
+
+    const filtered = q
+      ? all.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q)
+        )
+      : all;
+
+    renderProducts(filtered);
+  }
+
+  searchInput.addEventListener('input', filterProducts);
+
+  productsReady(() => {
+    filterProducts();
+  });
+
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login / Sign Up - E-Commerce</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="form-page">
+    <div class="form-card">
+      <h1>Welcome</h1>
+      <p class="subtitle">Sign in or create an account to continue.</p>
+
+      <div class="tabs">
+        <button type="button" id="tabLogin" class="active">Login</button>
+        <button type="button" id="tabSignup">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" required />
+          <span class="error" id="loginEmailError"></span>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required />
+          <span class="error" id="loginPasswordError"></span>
+        </div>
+        <span class="error" id="loginFormError"></span>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="signupForm" class="hide">
+        <div class="form-group">
+          <label for="signupName">Full Name</label>
+          <input type="text" id="signupName" placeholder="John Doe" required />
+          <span class="error" id="signupNameError"></span>
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" placeholder="you@example.com" required />
+          <span class="error" id="signupEmailError"></span>
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" placeholder="Min 6 characters" required minlength="6" />
+          <span class="error" id="signupPasswordError"></span>
+        </div>
+        <div class="form-group">
+          <label for="signupConfirm">Confirm Password</label>
+          <input type="password" id="signupConfirm" placeholder="Confirm password" required />
+          <span class="error" id="signupConfirmError"></span>
+        </div>
+        <span class="error" id="signupFormError"></span>
+        <button type="submit" class="btn btn-primary">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+ <script src="../js/auth.js"></script>
+  <script>
+    (function () {
+      if (isLoggedIn()) {
+        window.location.href = 'home.html';
+        return;
+      }
+
+      const tabLogin = document.getElementById('tabLogin');
+      const tabSignup = document.getElementById('tabSignup');
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+
+      function showLogin() {
+        tabLogin.classList.add('active');
+        tabSignup.classList.remove('active');
+        loginForm.classList.remove('hide');
+        signupForm.classList.add('hide');
+        clearErrors();
+      }
+      function showSignup() {
+        tabSignup.classList.add('active');
+        tabLogin.classList.remove('active');
+        signupForm.classList.remove('hide');
+        loginForm.classList.add('hide');
+        clearErrors();
+      }
+
+      tabLogin.addEventListener('click', showLogin);
+      tabSignup.addEventListener('click', showSignup);
+
+      function clearErrors() {
+        document.querySelectorAll('.form-card .error').forEach((el) => (el.textContent = ''));
+      }
+
+      function setError(id, msg) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = msg;
+      }
+
+      // Validation helpers
+      function validEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+
+      loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearErrors();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        let valid = true;
+        if (!email) {
+          setError('loginEmailError', 'Email is required.');
+          valid = false;
+        } else if (!validEmail(email)) {
+          setError('loginEmailError', 'Enter a valid email.');
+          valid = false;
+        }
+        if (!password) {
+          setError('loginPasswordError', 'Password is required.');
+          valid = false;
+        }
+        if (!valid) return;
+
+        const result = login(email, password);
+        if (result.success) {
+          window.location.href = 'home.html';
+        } else {
+          setError('loginFormError', result.error);
+        }
+      });
+
+      signupForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearErrors();
+        const name = document.getElementById('signupName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const password = document.getElementById('signupPassword').value;
+        const confirm = document.getElementById('signupConfirm').value;
+        let valid = true;
+
+        if (!name) {
+          setError('signupNameError', 'Name is required.');
+          valid = false;
+        }
+        if (!email) {
+          setError('signupEmailError', 'Email is required.');
+          valid = false;
+        } else if (!validEmail(email)) {
+          setError('signupEmailError', 'Enter a valid email.');
+          valid = false;
+        }
+        if (!password) {
+          setError('signupPasswordError', 'Password is required.');
+          valid = false;
+        } else if (password.length < 6) {
+          setError('signupPasswordError', 'Password must be at least 6 characters.');
+          valid = false;
+        }
+        if (password !== confirm) {
+          setError('signupConfirmError', 'Passwords do not match.');
+          valid = false;
+        }
+        if (!valid) return;
+
+        const result = register(name, email, password);
+        if (result.success) {
+          window.location.href = 'home.html';
+        } else {
+          setError('signupFormError', result.error);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

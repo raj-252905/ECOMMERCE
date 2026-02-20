@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Success – E-Commerce</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <nav class="nav" id="mainNav"></nav>
+
+  <main class="success-page">
+    <div class="success-card" id="successCard">
+      <div class="icon">✓</div>
+      <h1>Order Placed Successfully</h1>
+      <p class="order-id" id="orderIdText">Order #ORD-1234567890</p>
+      <div class="success-details" id="orderDetails"></div>
+      <a href="home.html" class="btn btn-primary">Continue Shopping</a>
+    </div>
+  </main>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      if (!requireAuth()) return;
+      renderNav('home');
+
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get('orderId');
+      const orders = getOrders();
+      const order = orderId ? orders.find((o) => o.id === orderId) : orders[0];
+
+      const orderIdText = document.getElementById('orderIdText');
+      const orderDetails = document.getElementById('orderDetails');
+
+      if (!order) {
+        orderIdText.textContent = 'Order not found.';
+        orderDetails.innerHTML = '<p class="text-muted">No order details available.</p>';
+        return;
+      }
+
+      orderIdText.textContent = 'Order #' + order.id;
+
+      let detailsHtml = '';
+      if (order.details) {
+        detailsHtml += `
+          <div class="row"><span>Name</span><span>${order.details.name}</span></div>
+          <div class="row"><span>Email</span><span>${order.details.email}</span></div>
+          <div class="row"><span>Phone</span><span>${order.details.phone}</span></div>
+          <div class="row"><span>Address</span><span>${order.details.address}</span></div>
+        `;
+      }
+      if (order.items && order.items.length) {
+        detailsHtml += '<div class="row" style="margin-top:0.75rem"><span><strong>Items</strong></span><span></span></div>';
+        order.items.forEach((item) => {
+          detailsHtml += `<div class="row"><span>${item.name} × ${item.quantity}</span><span>$${(item.price * item.quantity).toFixed(2)}</span></div>`;
+        });
+      }
+      detailsHtml += `<div class="row"><span><strong>Total</strong></span><span>$${order.total.toFixed(2)}</span></div>`;
+      orderDetails.innerHTML = detailsHtml;
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout – E-Commerce</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<nav class="nav" id="mainNav"></nav>
+
+<main class="container page">
+
+  <h1 class="page-title">Checkout</h1>
+
+  <div id="checkoutContent" class="checkout-layout">
+
+    <div class="checkout-form">
+      <h2>Shipping & Contact</h2>
+      <form id="checkoutForm">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="form-group">
+          <label>Phone *</label>
+          <input type="tel" id="phone" required />
+        </div>
+        <div class="form-group">
+          <label>Address *</label>
+          <input type="text" id="address" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          Place Order
+        </button>
+      </form>
+    </div>
+
+    <aside class="order-summary" id="orderSummary"></aside>
+
+  </div>
+
+  <div class="auth-required hide" id="emptyCartMsg">
+    <p>Your cart is empty. Add items from <a href="home.html">Home</a>.</p>
+  </div>
+
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/products.js"></script>
+<script src="../js/cart.js"></script>
+<script src="../js/app.js"></script>
+
+<script>
+(function () {
+
+  if (!requireAuth()) return;
+  renderNav('checkout');
+
+  const checkoutContent = document.getElementById('checkoutContent');
+  const emptyCartMsg = document.getElementById('emptyCartMsg');
+  const orderSummary = document.getElementById('orderSummary');
+  const form = document.getElementById('checkoutForm');
+
+  function renderSummary() {
+    const cart = getCart();
+
+    if (!cart.length) {
+      checkoutContent.classList.add('hide');
+      emptyCartMsg.classList.remove('hide');
+      return;
+    }
+
+    let subtotal = 0;
+
+    const items = cart.map(item => {
+      const product = getProductById(item.id);
+      if (!product) return null;
+
+      const lineTotal = product.price * item.quantity;
+      subtotal += lineTotal;
+
+      return { product, quantity: item.quantity, lineTotal };
+    }).filter(Boolean);
+
+    orderSummary.innerHTML = `
+      <h2>Order Summary</h2>
+      ${items.map(i => `
+        <div class="item">
+          <span>${i.product.name} × ${i.quantity}</span>
+          <span>$${i.lineTotal.toFixed(2)}</span>
+        </div>
+      `).join('')}
+      <div class="divider"></div>
+      <div class="total">
+        <span>Total</span>
+        <span>$${subtotal.toFixed(2)}</span>
+      </div>
+    `;
+  }
+
+  productsReady(() => {
+    renderSummary();
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address = document.getElementById('address').value.trim();
+
+    const cart = getCart();
+
+    const cartItemsWithProduct = cart.map(item => ({
+      product: getProductById(item.id),
+      quantity: item.quantity
+    }));
+
+    const order = placeOrder(
+      { name, email, phone, address },
+      cartItemsWithProduct
+    );
+
+    window.location.href = 'order-success.html?orderId=' + order.id;
+  });
+
+})();
+</script>
+
+</body>
+</html>
